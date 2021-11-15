@@ -1,0 +1,5 @@
+---
+- name: Install influxdb telegraf
+  hosts: all
+  roles:
+    - influxdb_telegraf

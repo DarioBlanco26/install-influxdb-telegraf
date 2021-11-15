@@ -1,0 +1,80 @@
+---
+# tasks file for influxdb_telegraf
+- name: Check influxdb installation
+  shell: "rpm -qa | grep -i influxdb2"
+  register: influxdb_install
+  ignore_errors: yes
+  tags:
+    - influxdb
+
+- name: Copy influxdb rpm package
+  copy:
+    src: files/influxdb2-2.0.7.x86_64.rpm
+    dest: /tmp
+  when: influxdb_install.rc == 1
+  tags:
+    - influxdb
+
+- name: Install influxdb rpm package
+  shell: "yum localinstall -y /tmp/influxdb2-2.0.7.x86_64.rpm"
+  when: influxdb_install.rc == 1
+  tags:
+    - influxdb
+
+- name: Check telegraf installation
+  shell: "rpm -qa | grep -i telegraf"
+  register: telegraf_install
+  ignore_errors: yes
+  tags:
+    - telegraf
+
+- name: Copy telegraf rpm package
+  copy:
+    src: files/telegraf-1.19.1-1.x86_64.rpm
+    dest: /tmp
+  when: telegraf_install.rc == 1
+  tags:
+    - telegraf
+
+- name: Install telegraf rpm package
+  shell: "yum localinstall -y /tmp/telegraf-1.19.1-1.x86_64.rpm"
+  when: telegraf_install.rc == 1
+  tags:
+    - telegraf
+
+- name: Check telegraf installation
+  shell: "chown -R telegraf:telegraf /etc/telegraf"
+  ignore_errors: yes
+  tags:
+    - telegraf
+
+- name: Stop telegraf service
+  service:
+    name: telegraf
+    state: stopped
+  when: telegraf_install.rc != 1
+  tags:
+    - telegraf
+
+- name: Config telegraf client
+  template:
+    src: telegraf.conf.j2
+    dest: /etc/telegraf/telegraf.conf
+    owner: '{{ telegraf_user }}'
+    group: '{{ telegraf_user }}'
+  tags:
+    - telegraf
+
+- name: Start influxdb service
+  service:
+    name: influxdb
+    state: started
+  tags:
+    - influxdb
+
+- name: Start telegraf service
+  service:
+    name: telegraf
+    state: started
+  tags:
+    - telegraf

@@ -1,0 +1,2 @@
+influx_token: 'insert_your_token_here'
+env_bucket: prod
